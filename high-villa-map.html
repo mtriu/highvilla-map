@@ -1,0 +1,56 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>High Villa Map</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <script src="https://api-maps.yandex.ru/v3/?apikey=49fdb8ac-c93c-4ad1-8bc9-6d0d3c41359d&lang=ru_RU"></script>
+    <script type="module">
+        import {{
+            YMap,
+            YMapDefaultSchemeLayer,
+            YMapDefaultFeaturesLayer,
+            YMapFeatureCollection
+        }} from 'https://api-maps.yandex.ru/v3/?apikey=49fdb8ac-c93c-4ad1-8bc9-6d0d3c41359d&lang=ru_RU';
+
+        const map = new YMap(document.getElementById('map'), {{
+            location: {{
+                center: [39.967000, 43.486204],
+                zoom: 17
+            }},
+            behaviors: ['drag', 'scrollZoom']
+        }});
+
+        map.addChild(new YMapDefaultFeaturesLayer());
+
+        // Загружаем и применяем кастомный стиль
+        fetch("https://raw.githubusercontent.com/mtriu/highvilla-map/refs/heads/main/customization.json")
+            .then(response => response.json())
+            .then(style => {{
+                map.addChild(new YMapDefaultSchemeLayer({{ customization: style }}));
+            }});
+
+        // Загружаем GeoJSON
+        fetch("https://raw.githubusercontent.com/mtriu/highvilla-map/refs/heads/main/High%20Villa_24-06-2025_21-23-39.geojson")
+            .then(response => response.json())
+            .then(geojson => {{
+                map.addChild(new YMapFeatureCollection({{ features: geojson.features }}));
+            }});
+    </script>
+</body>
+</html>
