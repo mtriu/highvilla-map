@@ -2,79 +2,98 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
   <title>High Villa Map</title>
   <style>
     html, body, #map {
-      width: 100%; height: 100%; margin: 0; padding: 0;
+      margin: 0; padding: 0; width: 100%; height: 100%;
       font-family: Arial, sans-serif;
     }
+    #map { position: relative; }
     .marker-container {
-      position: relative;
       cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .marker-text {
+      background: white;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: bold;
+      margin-bottom: 4px;
       user-select: none;
+      white-space: nowrap;
     }
     .marker-image {
-      width: 40px;
-      height: 40px;
-      display: block;
-    }
-    .marker-label {
-      position: absolute;
-      top: 45px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(255, 255, 255, 0.8);
-      padding: 2px 6px;
-      border-radius: 3px;
-      font-size: 14px;
-      white-space: nowrap;
-      pointer-events: none;
+      width: 32px;
+      height: 32px;
     }
   </style>
-  <script src="https://api-maps.yandex.ru/v3/?apikey=49fdb8ac-c93c-4ad1-8bc9-6d0d3c41359d&lang=ru_RU" type="text/javascript"></script>
 </head>
 <body>
-  <div id="map" style="width:100%; height:100%"></div>
+  <div id="map"></div>
 
+  <script src="https://api-maps.yandex.ru/v3/?apikey=49fdb8ac-c93c-4ad1-8bc9-6d0d3c41359d&lang=ru_RU" type="text/javascript"></script>
   <script>
-    ymaps3.ready.then(() => {
-      const { YMap, YMapMarker, YMapDefaultSchemeLayer, YMapDefaultFeaturesLayer } = ymaps3;
+    window.onload = function() {
+      if (typeof ymaps3 === "undefined") {
+        alert('Ошибка загрузки Яндекс.Карт');
+        return;
+      }
 
-      const map = new YMap(document.getElementById('map'), {
-        location: {
-          center: [43.486204, 39.967000], // обратный порядок: [широта, долгота]
-          zoom: 17
-        },
-        behaviors: ['drag', 'scrollZoom'],
-        mode: 'vector'
+      ymaps3.ready.then(() => {
+        const {YMap, YMapDefaultSchemeLayer, YMapDefaultFeaturesLayer, YMapMarker} = ymaps3;
+
+        const map = new YMap(document.getElementById('map'), {
+          location: {
+            center: [43.486204, 39.967000], // Обрати внимание — порядок: [широта, долгота]
+            zoom: 17
+          },
+          mode: 'vector',
+          behaviors: ['drag', 'scrollZoom']
+        });
+
+        // Загружаем кастомизацию и применяем стиль
+        fetch("https://raw.githubusercontent.com/mtriu/highvilla-map/main/customization.json")
+          .then(res => res.json())
+          .then(customization => {
+            map.addChild(new YMapDefaultSchemeLayer({ customization }));
+          })
+          .catch(() => {
+            // Если кастомизация не загрузилась — добавляем базовый слой без кастомизации
+            map.addChild(new YMapDefaultSchemeLayer());
+            console.warn('Кастомизация не загружена');
+          });
+
+        map.addChild(new YMapDefaultFeaturesLayer());
+
+        // Создаём маркер с твоим изображением и подписью
+        const markerContainer = document.createElement('div');
+        markerContainer.className = 'marker-container';
+
+        const markerLabel = document.createElement('div');
+        markerLabel.className = 'marker-text';
+        markerLabel.textContent = 'High Villa';
+
+        const markerImg = document.createElement('img');
+        markerImg.className = 'marker-image';
+        // Вот ссылка на твоё изображение (замени, если нужно)
+        markerImg.src = 'https://example.com/path-to-your-image.png';
+
+        markerContainer.appendChild(markerLabel);
+        markerContainer.appendChild(markerImg);
+
+        const marker = new YMapMarker(
+          {
+            coordinates: [43.486204, 39.967000]
+          },
+          markerContainer
+        );
+
+        map.addChild(marker);
       });
-
-      // Добавим стандартные слои карты
-      map.addChild(new YMapDefaultSchemeLayer());
-      map.addChild(new YMapDefaultFeaturesLayer());
-
-      // Создаем контейнер маркера с изображением и подписью
-      const markerContainer = document.createElement('div');
-      markerContainer.className = 'marker-container';
-
-      const img = document.createElement('img');
-      img.src = 'https://raw.githubusercontent.com/mtriu/highvilla-map/main/marker-icon.png'; // замени на свой URL иконки
-      img.className = 'marker-image';
-
-      const label = document.createElement('div');
-      label.className = 'marker-label';
-      label.textContent = 'High Villa';
-
-      markerContainer.appendChild(img);
-      markerContainer.appendChild(label);
-
-      // Добавляем маркер на карту
-      const marker = new YMapMarker({
-        coordinates: [43.486204, 39.967000] // координаты маркера (широта, долгота)
-      }, markerContainer);
-
-      map.addChild(marker);
-    });
+    };
   </script>
 </body>
 </html>
