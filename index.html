@@ -2,98 +2,81 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
   <title>High Villa Map</title>
   <style>
     html, body, #map {
       margin: 0; padding: 0; width: 100%; height: 100%;
       font-family: Arial, sans-serif;
     }
-    #map { position: relative; }
+    #map {
+      position: relative;
+    }
     .marker-container {
-      cursor: pointer;
       display: flex;
       flex-direction: column;
       align-items: center;
-    }
-    .marker-text {
-      background: white;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-weight: bold;
-      margin-bottom: 4px;
+      cursor: pointer;
       user-select: none;
-      white-space: nowrap;
     }
     .marker-image {
       width: 32px;
       height: 32px;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+    .marker-label {
+      margin-top: 4px;
+      font-weight: bold;
+      font-size: 14px;
+      color: #333;
+      white-space: nowrap;
+      text-shadow: 0 0 3px white;
+    }
+    #error {
+      display: none;
+      text-align: center;
+      padding: 20px;
+      color: red;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
   <div id="map"></div>
+  <div id="error">❌ Не удалось загрузить карту. Попробуйте отключить AdBlock или открыть в другом браузере.</div>
 
   <script src="https://api-maps.yandex.ru/v3/?apikey=49fdb8ac-c93c-4ad1-8bc9-6d0d3c41359d&lang=ru_RU" type="text/javascript"></script>
   <script>
+    function showError() {
+      document.getElementById('map').style.display = 'none';
+      document.getElementById('error').style.display = 'block';
+    }
+
     window.onload = function() {
       if (typeof ymaps3 === "undefined") {
-        alert('Ошибка загрузки Яндекс.Карт');
+        showError();
         return;
       }
 
       ymaps3.ready.then(() => {
-        const {YMap, YMapDefaultSchemeLayer, YMapDefaultFeaturesLayer, YMapMarker} = ymaps3;
-
-        const map = new YMap(document.getElementById('map'), {
+        // Создаём карту
+        const map = new ymaps3.YMap(document.getElementById('map'), {
           location: {
-            center: [43.486204, 39.967000], // Обрати внимание — порядок: [широта, долгота]
+            center: [39.967000, 43.486204], // долгота, широта
             zoom: 17
           },
           mode: 'vector',
           behaviors: ['drag', 'scrollZoom']
         });
 
-        // Загружаем кастомизацию и применяем стиль
-        fetch("https://raw.githubusercontent.com/mtriu/highvilla-map/main/customization.json")
-          .then(res => res.json())
-          .then(customization => {
-            map.addChild(new YMapDefaultSchemeLayer({ customization }));
+        // Добавляем слой с базовыми объектами (дороги, здания)
+        map.addChild(new ymaps3.YMapDefaultFeaturesLayer());
+
+        // Загружаем кастомизацию из json и добавляем слой с кастомизацией
+        fetch('https://raw.githubusercontent.com/mtriu/highvilla-map/main/customization.json')
+          .then(res => {
+            if (!res.ok) throw new Error('Ошибка загрузки кастомизации');
+            return res.json();
           })
-          .catch(() => {
-            // Если кастомизация не загрузилась — добавляем базовый слой без кастомизации
-            map.addChild(new YMapDefaultSchemeLayer());
-            console.warn('Кастомизация не загружена');
-          });
-
-        map.addChild(new YMapDefaultFeaturesLayer());
-
-        // Создаём маркер с твоим изображением и подписью
-        const markerContainer = document.createElement('div');
-        markerContainer.className = 'marker-container';
-
-        const markerLabel = document.createElement('div');
-        markerLabel.className = 'marker-text';
-        markerLabel.textContent = 'High Villa';
-
-        const markerImg = document.createElement('img');
-        markerImg.className = 'marker-image';
-        // Вот ссылка на твоё изображение (замени, если нужно)
-        markerImg.src = 'https://example.com/path-to-your-image.png';
-
-        markerContainer.appendChild(markerLabel);
-        markerContainer.appendChild(markerImg);
-
-        const marker = new YMapMarker(
-          {
-            coordinates: [43.486204, 39.967000]
-          },
-          markerContainer
-        );
-
-        map.addChild(marker);
-      });
-    };
-  </script>
-</body>
-</html>
+          .then(custom
