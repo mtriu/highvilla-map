@@ -1,0 +1,56 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>High Villa Map</title>
+    <style>
+        html, body { margin: 0; padding: 0; height: 100%; }
+        #map { width: 100%; height: 100%; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <script src="https://api-maps.yandex.ru/v3/?apikey=49fdb8ac-c93c-4ad1-8bc9-6d0d3c41359d&lang=ru_RU"></script>
+    <script>
+        ymaps3.ready.then(() => {
+            ymaps3.import([
+                'YMap',
+                'YMapDefaultSchemeLayer',
+                'YMapDefaultFeaturesLayer',
+                'YMapFeatureCollection',
+                'prepareCustomization'
+            ]).then(({
+                YMap,
+                YMapDefaultSchemeLayer,
+                YMapDefaultFeaturesLayer,
+                YMapFeatureCollection,
+                prepareCustomization
+            }) => {
+                const map = new YMap(document.getElementById('map'), {
+                    location: { center: [39.967000, 43.486204], zoom: 17 },
+                    behaviors: ['drag', 'scrollZoom']
+                });
+
+                map.addChild(new YMapDefaultFeaturesLayer());
+
+                // Загрузка и применение кастомного стиля
+                fetch("https://raw.githubusercontent.com/mtriu/highvilla-map/main/customization.json")
+                    .then(r => r.json())
+                    .then(styleData => {
+                        const customization = prepareCustomization(styleData);
+                        map.addChild(new YMapDefaultSchemeLayer({ customization }));
+                    });
+
+                // Загрузка GeoJSON
+                fetch("https://raw.githubusercontent.com/mtriu/highvilla-map/main/High%20Villa_24-06-2025_21-23-39.geojson")
+                    .then(r => r.json())
+                    .then(geojson => {
+                        map.addChild(new YMapFeatureCollection({ features: geojson.features }));
+                    });
+            });
+        });
+    </script>
+</body>
+</html>
