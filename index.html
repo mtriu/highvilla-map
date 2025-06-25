@@ -57,8 +57,8 @@
           .catch(() => {
             console.error('Ошибка загрузки кастомизации');
           });
-      });
-  // Добавляем маркер на ту же точку, где центр карты
+
+        // Добавляем маркер на ту же точку, где центр карты
         const markerCoordinates = [39.967000, 43.486204];
 
         // Создаем элемент маркера с твоей svg иконкой
@@ -73,7 +73,7 @@
         const marker = new ymaps3.YMapMarker({ coordinates: markerCoordinates }, markerElement);
 
         map.addChild(marker);
-      };
+      });
     };
   </script>
 </body>
