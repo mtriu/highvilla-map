@@ -38,36 +38,42 @@
       }
 
       ymaps3.ready.then(() => {
-        const map = new ymaps3.YMap(document.getElementById('map'), {
-          location: {
-            center: [39.967000, 43.486204],
-            zoom: 17
-          },
-          behaviors: ['drag', 'scrollZoom'],
-          mode: 'vector'  // Обязательно для кастомизации
-        });
-
-        map.addChild(new ymaps3.YMapDefaultFeaturesLayer());
-
-        fetch("https://raw.githubusercontent.com/mtriu/highvilla-map/main/customization.json")
-          .then(response => response.json())
-          .then(customization => {
-            map.addChild(new ymaps3.YMapDefaultSchemeLayer({ customization }));
-          }).catch(() => {
-            console.error('Ошибка загрузки кастомизации');
+        ymaps3.import([
+          'YMap',
+          'YMapDefaultSchemeLayer',
+          'YMapDefaultFeaturesLayer',
+          'YMapFeatureCollection',
+          'prepareCustomization'
+        ]).then(({
+          YMap,
+          YMapDefaultSchemeLayer,
+          YMapDefaultFeaturesLayer,
+          YMapFeatureCollection,
+          prepareCustomization
+        }) => {
+          const map = new YMap(document.getElementById('map'), {
+            location: {
+              center: [39.967000, 43.486204],
+              zoom: 17
+            },
+            behaviors: ['drag', 'scrollZoom']
           });
 
-fetch("https://raw.githubusercontent.com/mtriu/highvilla-map/main/High%20Villa_24-06-2025_21-23-39.geojson")
-  .then(response => {
-    if (!response.ok) throw new Error('Network response was not ok');
-    return response.json();
-  })
-  .then(geojson => {
-    map.addChild(new ymaps3.YMapFeatureCollection({ features: geojson.features }));
-  })
-  .catch(err => {
-    console.error('Ошибка загрузки GeoJSON:', err);
-  });
+          map.addChild(new YMapDefaultFeaturesLayer());
+
+          fetch("https://raw.githubusercontent.com/mtriu/highvilla-map/main/customization.json")
+            .then(r => r.json())
+            .then(data => {
+              const customization = prepareCustomization(data);
+              map.addChild(new YMapDefaultSchemeLayer({ customization }));
+            });
+
+          fetch("https://raw.githubusercontent.com/mtriu/highvilla-map/main/High%20Villa_24-06-2025_21-23-39.geojson")
+            .then(r => r.json())
+            .then(geojson => {
+              map.addChild(new YMapFeatureCollection({ features: geojson.features }));
+            });
+        });
       }).catch(showError);
     };
   </script>
