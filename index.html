@@ -57,14 +57,17 @@
             console.error('Ошибка загрузки кастомизации');
           });
 
-        fetch("https://raw.githubusercontent.com/mtriu/highvilla-map/refs/heads/main/High%20Villa_24-06-2025_21-23-39.geojson")
-          .then(response => response.json())
-          .then(geojson => {
-            map.addChild(new ymaps3.YMapFeatureCollection({ features: geojson.features }));
-          }).catch(() => {
-            console.error('Ошибка загрузки GeoJSON');
-          });
-
+fetch("https://raw.githubusercontent.com/mtriu/highvilla-map/main/High%20Villa_24-06-2025_21-23-39.geojson")
+  .then(response => {
+    if (!response.ok) throw new Error('Network response was not ok');
+    return response.json();
+  })
+  .then(geojson => {
+    map.addChild(new ymaps3.YMapFeatureCollection({ features: geojson.features }));
+  })
+  .catch(err => {
+    console.error('Ошибка загрузки GeoJSON:', err);
+  });
       }).catch(showError);
     };
   </script>
