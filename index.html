@@ -3,11 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <title>High Villa Map</title>
-  <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=" /> <!-- Пустой favicon -->
   <style>
     html, body, #map {
-      margin: 0; padding: 0;
-      width: 100%; height: 100%;
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
     }
     #error {
       display: none;
@@ -23,63 +25,48 @@
   <div id="error">❌ Не удалось загрузить карту. Возможно, ваш браузер блокирует скрипт Яндекса. Попробуйте отключить AdBlock или откройте в другом браузере.</div>
 
   <script src="https://api-maps.yandex.ru/v3/?apikey=49fdb8ac-c93c-4ad1-8bc9-6d0d3c41359d&lang=ru_RU" type="text/javascript"></script>
-  <script>
+  <script type="text/javascript">
     function showError() {
       document.getElementById('map').style.display = 'none';
       document.getElementById('error').style.display = 'block';
     }
 
-    window.onload = function() {
+    window.onload = function () {
       if (typeof ymaps3 === "undefined") {
         showError();
         return;
       }
 
       ymaps3.ready.then(() => {
-        ymaps3.import([
-          'YMap',
-          'YMapDefaultSchemeLayer',
-          'YMapDefaultFeaturesLayer',
-          'YMapFeatureCollection',
-          'prepareCustomization'
-        ]).then(({
-          YMap,
-          YMapDefaultSchemeLayer,
-          YMapDefaultFeaturesLayer,
-          YMapFeatureCollection,
-          prepareCustomization
-        }) => {
-          const map = new YMap(document.getElementById('map'), {
-            location: {
-              center: [39.967000, 43.486204],
-              zoom: 17
-            },
-            behaviors: ['drag', 'scrollZoom'],
-            mode: 'vector'
+        const map = new ymaps3.YMap(document.getElementById('map'), {
+          location: {
+            center: [39.967000, 43.486204],
+            zoom: 17
+          },
+          behaviors: ['drag', 'scrollZoom'],
+          mode: 'vector'  // Обязательно для кастомизации
+        });
+
+        map.addChild(new ymaps3.YMapDefaultFeaturesLayer());
+
+        fetch("https://raw.githubusercontent.com/mtriu/highvilla-map/main/customization.json")
+          .then(response => response.json())
+          .then(customization => {
+            map.addChild(new ymaps3.YMapDefaultSchemeLayer({ customization }));
+          }).catch(() => {
+            console.error('Ошибка загрузки кастомизации');
           });
-
-          map.addChild(new YMapDefaultFeaturesLayer());
-
-          fetch("https://raw.githubusercontent.com/mtriu/highvilla-map/main/customization.json")
-            .then(res => res.json())
-            .then(data => {
-              const customization = prepareCustomization(data);
-              map.addChild(new YMapDefaultSchemeLayer({ customization }));
-            })
-            .catch(() => console.error('Ошибка загрузки кастомизации'));
-
-          fetch("https://raw.githubusercontent.com/mtriu/highvilla-map/main/High%20Villa_24-06-2025_21-23-39.geojson")
-            .then(res => {
-              if (!res.ok) throw new Error('Network response was not ok');
-              return res.json();
-            })
-            .then(geojson => {
-              map.addChild(new YMapFeatureCollection({ features: geojson.features }));
-            })
-            .catch(err => console.error('Ошибка загрузки GeoJSON:', err));
-        }).catch(showError);
-      }).catch(showError);
-    };
+fetch("https://raw.githubusercontent.com/mtriu/highvilla-map/main/High%20Villa_24-06-2025_21-23-39.geojson")
+  .then(response => {
+    if (!response.ok) throw new Error('Network response was not ok');
+    return response.json();
+  })
+  .then(geojson => {
+    map.addChild(new ymaps3.YMapFeatureCollection({ features: geojson.features }));
+  })
+  .catch(err => {
+    console.error('Ошибка загрузки GeoJSON:', err);
+  });
   </script>
 </body>
 </html>
