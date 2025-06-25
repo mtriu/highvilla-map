@@ -58,6 +58,22 @@
             console.error('Ошибка загрузки кастомизации');
           });
       });
+  // Добавляем маркер на ту же точку, где центр карты
+        const markerCoordinates = [39.967000, 43.486204];
+
+        // Создаем элемент маркера с твоей svg иконкой
+        const markerElement = document.createElement('div');
+        markerElement.style.width = '48px';
+        markerElement.style.height = '48px';
+        markerElement.style.backgroundImage = 'url("https://raw.githubusercontent.com/mtriu/highvilla-map/refs/heads/main/hv.svg")';
+        markerElement.style.backgroundSize = 'contain';
+        markerElement.style.backgroundRepeat = 'no-repeat';
+        markerElement.style.cursor = 'pointer';
+
+        const marker = new ymaps3.YMapMarker({ coordinates: markerCoordinates }, markerElement);
+
+        map.addChild(marker);
+      });
     };
   </script>
 </body>
