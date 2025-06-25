@@ -3,80 +3,62 @@
 <head>
   <meta charset="UTF-8" />
   <title>High Villa Map</title>
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=" /> <!-- Пустой favicon -->
   <style>
     html, body, #map {
-      margin: 0; padding: 0; width: 100%; height: 100%;
-      font-family: Arial, sans-serif;
-    }
-    #map {
-      position: relative;
-    }
-    .marker-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      cursor: pointer;
-      user-select: none;
-    }
-    .marker-image {
-      width: 32px;
-      height: 32px;
-      background-size: contain;
-      background-repeat: no-repeat;
-      background-position: center;
-    }
-    .marker-label {
-      margin-top: 4px;
-      font-weight: bold;
-      font-size: 14px;
-      color: #333;
-      white-space: nowrap;
-      text-shadow: 0 0 3px white;
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
     }
     #error {
       display: none;
       text-align: center;
+      font-family: sans-serif;
       padding: 20px;
       color: red;
-      font-weight: bold;
     }
   </style>
 </head>
 <body>
   <div id="map"></div>
-  <div id="error">❌ Не удалось загрузить карту. Попробуйте отключить AdBlock или открыть в другом браузере.</div>
+  <div id="error">❌ Не удалось загрузить карту. Возможно, ваш браузер блокирует скрипт Яндекса. Попробуйте отключить AdBlock или откройте в другом браузере.</div>
 
   <script src="https://api-maps.yandex.ru/v3/?apikey=49fdb8ac-c93c-4ad1-8bc9-6d0d3c41359d&lang=ru_RU" type="text/javascript"></script>
-  <script>
+  <script type="text/javascript">
     function showError() {
       document.getElementById('map').style.display = 'none';
       document.getElementById('error').style.display = 'block';
     }
 
-    window.onload = function() {
+    window.onload = function () {
       if (typeof ymaps3 === "undefined") {
         showError();
         return;
       }
 
       ymaps3.ready.then(() => {
-        // Создаём карту
         const map = new ymaps3.YMap(document.getElementById('map'), {
           location: {
-            center: [39.967000, 43.486204], // долгота, широта
-            zoom: 17
+            center: [39.967000, 43.486204],
+            zoom: 11
           },
-          mode: 'vector',
-          behaviors: ['drag', 'scrollZoom']
+          behaviors: ['drag', 'scrollZoom'],
+          mode: 'vector'  // Обязательно для кастомизации
         });
 
-        // Добавляем слой с базовыми объектами (дороги, здания)
         map.addChild(new ymaps3.YMapDefaultFeaturesLayer());
 
-        // Загружаем кастомизацию из json и добавляем слой с кастомизацией
-        fetch('https://raw.githubusercontent.com/mtriu/highvilla-map/main/customization.json')
-          .then(res => {
-            if (!res.ok) throw new Error('Ошибка загрузки кастомизации');
-            return res.json();
+        fetch("https://raw.githubusercontent.com/mtriu/highvilla-map/main/customization.json")
+          .then(response => response.json())
+          .then(customization => {
+            map.addChild(new ymaps3.YMapDefaultSchemeLayer({ customization }));
           })
-          .then(custom
+          .catch(() => {
+            console.error('Ошибка загрузки кастомизации');
+          });
+      });
+    };
+  </script>
+</body>
+</html>
