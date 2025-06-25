@@ -18,6 +18,21 @@
       padding: 20px;
       color: red;
     }
+    .marker-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .marker-label {
+      margin-top: 4px;
+      font-weight: bold;
+      font-size: 14px;
+      color: #333;
+      text-shadow: 0 0 2px white;
+      white-space: nowrap;
+    }
   </style>
 </head>
 <body>
@@ -58,19 +73,31 @@
             console.error('Ошибка загрузки кастомизации');
           });
 
-        // Добавляем маркер на ту же точку, где центр карты
+        // Координаты маркера (совпадают с центром карты)
         const markerCoordinates = [39.967000, 43.486204];
 
-        // Создаем элемент маркера с твоей svg иконкой
-        const markerElement = document.createElement('div');
-        markerElement.style.width = '48px';
-        markerElement.style.height = '48px';
-        markerElement.style.backgroundImage = 'url("https://raw.githubusercontent.com/mtriu/highvilla-map/refs/heads/main/hv.svg")';
-        markerElement.style.backgroundSize = 'contain';
-        markerElement.style.backgroundRepeat = 'no-repeat';
-        markerElement.style.cursor = 'pointer';
+        // Создаём контейнер для маркера и подписи
+        const markerContainer = document.createElement('div');
+        markerContainer.className = 'marker-container';
 
-        const marker = new ymaps3.YMapMarker({ coordinates: markerCoordinates }, markerElement);
+        // Создаём элемент с иконкой
+        const markerIcon = document.createElement('div');
+        markerIcon.style.width = '48px';
+        markerIcon.style.height = '48px';
+        markerIcon.style.backgroundImage = 'url("https://raw.githubusercontent.com/mtriu/highvilla-map/refs/heads/main/hv.svg")';
+        markerIcon.style.backgroundSize = 'contain';
+        markerIcon.style.backgroundRepeat = 'no-repeat';
+
+        // Создаём подпись
+        const markerLabel = document.createElement('div');
+        markerLabel.className = 'marker-label';
+        markerLabel.textContent = 'HIGH VILLA';
+
+        // Собираем всё вместе
+        markerContainer.appendChild(markerIcon);
+        markerContainer.appendChild(markerLabel);
+
+        const marker = new ymaps3.YMapMarker({ coordinates: markerCoordinates }, markerContainer);
 
         map.addChild(marker);
       });
