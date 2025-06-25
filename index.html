@@ -56,7 +56,6 @@
           }).catch(() => {
             console.error('Ошибка загрузки кастомизации');
           });
-
 fetch("https://raw.githubusercontent.com/mtriu/highvilla-map/main/High%20Villa_24-06-2025_21-23-39.geojson")
   .then(response => {
     if (!response.ok) throw new Error('Network response was not ok');
@@ -68,8 +67,6 @@ fetch("https://raw.githubusercontent.com/mtriu/highvilla-map/main/High%20Villa_2
   .catch(err => {
     console.error('Ошибка загрузки GeoJSON:', err);
   });
-      }).catch(showError);
-    };
   </script>
 </body>
 </html>
