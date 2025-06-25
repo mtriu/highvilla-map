@@ -3,72 +3,82 @@
 <head>
   <meta charset="UTF-8" />
   <title>High Villa Map</title>
-  <link rel="icon" href="data:;base64,iVBORw0KGgo=" /> <!-- Пустой favicon -->
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
   <style>
     html, body, #map {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
+      margin: 0; padding: 0; width: 100%; height: 100%;
     }
     #error {
-      display: none;
-      text-align: center;
-      font-family: sans-serif;
-      padding: 20px;
-      color: red;
+      display: none; text-align: center; font-family: sans-serif;
+      padding: 20px; color: red;
     }
   </style>
 </head>
 <body>
   <div id="map"></div>
-  <div id="error">❌ Не удалось загрузить карту. Возможно, ваш браузер блокирует скрипт Яндекса. Попробуйте отключить AdBlock или откройте в другом браузере.</div>
+  <div id="error">❌ Не удалось загрузить карту. Проверьте, что скрипт Яндекса не блокируется.</div>
 
-  <script src="https://api-maps.yandex.ru/v3/?apikey=49fdb8ac-c93c-4ad1-8bc9-6d0d3c41359d&lang=ru_RU" type="text/javascript"></script>
-  <script type="text/javascript">
+  <script src="https://api-maps.yandex.ru/v3/?apikey=49fdb8ac-c93c-4ad1-8bc9-6d0d3c41359d&lang=ru_RU"></script>
+  <script>
     function showError() {
       document.getElementById('map').style.display = 'none';
       document.getElementById('error').style.display = 'block';
     }
 
-    window.onload = function () {
+    window.onload = () => {
       if (typeof ymaps3 === "undefined") {
         showError();
         return;
       }
 
       ymaps3.ready.then(() => {
-        const map = new ymaps3.YMap(document.getElementById('map'), {
-          location: {
-            center: [39.967000, 43.486204],
-            zoom: 11
-          },
-          behaviors: ['drag', 'scrollZoom'],
-          mode: 'vector'  // Обязательно для кастомизации
-        });
-
-        map.addChild(new ymaps3.YMapDefaultFeaturesLayer());
-
-        fetch("https://raw.githubusercontent.com/mtriu/highvilla-map/main/customization.json")
-          .then(response => response.json())
-          .then(customization => {
-            map.addChild(new ymaps3.YMapDefaultSchemeLayer({ customization }));
-          }).catch(() => {
-            console.error('Ошибка загрузки кастомизации');
+        ymaps3.import([
+          'YMap',
+          'YMapDefaultSchemeLayer',
+          'YMapDefaultFeaturesLayer',
+          'YMapFeatureCollection',
+          'prepareCustomization'
+        ]).then(({
+          YMap,
+          YMapDefaultSchemeLayer,
+          YMapDefaultFeaturesLayer,
+          YMapFeatureCollection,
+          prepareCustomization
+        }) => {
+          const map = new YMap(document.getElementById('map'), {
+            location: {
+              center: [39.967000, 43.486204],
+              zoom: 17
+            },
+            behaviors: ['drag', 'scrollZoom'],
+            mode: 'vector'
           });
-fetch("https://raw.githubusercontent.com/mtriu/highvilla-map/main/highvilla.geojson")
-  .then(response => {
-    if (!response.ok) throw new Error('Network response was not ok');
-    return response.json();
-  })
-  .then(geojson => {
-    map.addChild(new ymaps3.YMapFeatureCollection({ features: geojson.features }));
-  })
-  .catch(err => {
-    console.error('Ошибка загрузки GeoJSON:', err);
-  });
-});
-      };
+
+          map.addChild(new YMapDefaultFeaturesLayer());
+
+          fetch("https://raw.githubusercontent.com/mtriu/highvilla-map/main/customization.json")
+            .then(res => res.json())
+            .then(data => {
+              const customization = prepareCustomization(data);
+              map.addChild(new YMapDefaultSchemeLayer({ customization }));
+            })
+            .catch(() => console.error('Ошибка загрузки кастомизации'));
+
+          fetch("https://raw.githubusercontent.com/mtriu/highvilla-map/main/highvilla.geojson")
+            .then(res => {
+              if (!res.ok) throw new Error('Network response was not ok');
+              return res.json();
+            })
+            .then(geojson => {
+              map.addChild(new YMapFeatureCollection({ features: geojson.features }));
+            })
+            .catch(err => {
+              console.error('Ошибка загрузки GeoJSON:', err);
+            });
+
+        }).catch(showError);
+      }).catch(showError);
+    };
   </script>
 </body>
 </html>
